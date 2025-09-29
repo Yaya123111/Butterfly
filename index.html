@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Camera Button Example</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Monkey Video + Camera Recorder</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -11,62 +11,126 @@
       background-color: #f0f0f0;
       display: flex;
       justify-content: center;
-      align-items: center;
-    }
-
-    .container {
-      display: flex;
-      gap: 20px;
-      align-items: center;
+      gap: 40px;
       flex-wrap: wrap;
     }
-
     video {
-      max-width: 300px;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      max-width: 300px;
+      width: 100%;
+      height: auto;
     }
-
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
     button {
-      padding: 14px 24px;
+      padding: 12px 24px;
       font-size: 16px;
       border: none;
       background-color: #007aff;
       color: white;
       border-radius: 8px;
       cursor: pointer;
+      min-width: 150px;
     }
-
-    button:hover {
-      background-color: #005bbb;
+    button:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
     }
-
-    #cameraInput {
-      display: none;
+    h2 {
+      margin-bottom: 10px;
+    }
+    #recordedVideo {
+      margin-top: 20px;
+      max-width: 300px;
     }
   </style>
 </head>
 <body>
 
+  <!-- Monkey video -->
   <div class="container">
-    <!-- Sample video -->
+    <h2>Monkey Logo Video</h2>
     <video autoplay muted loop playsinline>
-      <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+      <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
       Your browser does not support the video tag.
     </video>
-
-    <!-- Button that opens camera -->
-    <div>
-      <input type="file" accept="image/*" capture="environment" id="cameraInput" />
-      <button onclick="openCamera()">Open Camera</button>
-    </div>
   </div>
 
-  <script>
-    function openCamera() {
-      document.getElementById('cameraInput').click();
+  <!-- Camera recorder -->
+  <div class="container">
+    <h2>Record Your Video</h2>
+    <video id="cameraPreview" autoplay muted playsinline></video>
+    
+    <button id="startBtn">Start Recording</button>
+    <button id="stopBtn" disabled>Stop Recording</button>
+    
+    <video id="recordedVideo" controls></video>
+  </div>
+
+<script>
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const cameraPreview = document.getElementById('cameraPreview');
+  const recordedVideo = document.getElementById('recordedVideo');
+
+  let mediaRecorder;
+  let recordedChunks = [];
+
+  async function setupCamera() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user' },  // front camera; use 'environment' for rear camera
+        audio: true
+      });
+      cameraPreview.srcObject = stream;
+      return stream;
+    } catch (err) {
+      alert('Could not access camera and microphone: ' + err.message);
+      throw err;
     }
-  </script>
+  }
+
+  startBtn.onclick = async () => {
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+    recordedVideo.src = '';
+
+    const stream = await setupCamera();
+
+    recordedChunks = [];
+    mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp8,opus' });
+
+    mediaRecorder.ondataavailable = event => {
+      if (event.data.size > 0) recordedChunks.push(event.data);
+    };
+
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      recordedVideo.src = url;
+      recordedVideo.controls = true;
+      recordedVideo.play();
+
+      // Stop all tracks to free camera/mic
+      stream.getTracks().forEach(track => track.stop());
+    };
+
+    mediaRecorder.start();
+  };
+
+  stopBtn.onclick = () => {
+    stopBtn.disabled = true;
+    startBtn.disabled = false;
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+    }
+  };
+</script>
 
 </body>
 </html>
