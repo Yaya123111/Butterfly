@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Camera Button Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 30px;
+      background-color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    video {
+      max-width: 300px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    button {
+      padding: 14px 24px;
+      font-size: 16px;
+      border: none;
+      background-color: #007aff;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #005bbb;
+    }
+
+    #cameraInput {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Sample video -->
+    <video autoplay muted loop playsinline>
+      <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+
+    <!-- Button that opens camera -->
+    <div>
+      <input type="file" accept="image/*" capture="environment" id="cameraInput" />
+      <button onclick="openCamera()">Open Camera</button>
+    </div>
+  </div>
+
+  <script>
+    function openCamera() {
+      document.getElementById('cameraInput').click();
+    }
+  </script>
+
+</body>
+</html>
